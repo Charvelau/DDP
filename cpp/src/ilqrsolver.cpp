@@ -131,20 +131,24 @@ void ILQRSolver::backwardLoop()
 
             Qx = costFunction->getlx() + dynamicModel->getfx().transpose() * nextVx;
             Qu = costFunction->getlu() + dynamicModel->getfu().transpose() * nextVx;
-            Qxx = costFunction->getlxx() + dynamicModel->getfx().transpose() * (nextVxx+muEye) * dynamicModel->getfx();
-            Quu = costFunction->getluu() + dynamicModel->getfu().transpose() * (nextVxx+muEye) * dynamicModel->getfu();
-            Qux = costFunction->getlux() + dynamicModel->getfu().transpose() * (nextVxx+muEye) * dynamicModel->getfx();
+            Qxx = costFunction->getlxx() + dynamicModel->getfx().transpose() * (nextVxx) * dynamicModel->getfx();
+            Quu = costFunction->getluu() + dynamicModel->getfu().transpose() * (nextVxx) * dynamicModel->getfu();
+            Qux = costFunction->getlux() + dynamicModel->getfu().transpose() * (nextVxx) * dynamicModel->getfx();
+            Quu_reg = costFunction->getluu() + dynamicModel->getfu().transpose() * (nextVxx+muEye) * dynamicModel->getfu();
+            Qux_reg = costFunction->getlux() + dynamicModel->getfu().transpose() * (nextVxx+muEye) * dynamicModel->getfx();
 
             if(enableFullDDP)
             {
                 Qxx += dynamicModel->computeTensorContxx(nextVx);
                 Qux += dynamicModel->computeTensorContux(nextVx);
                 Quu += dynamicModel->computeTensorContuu(nextVx);
+                Qux_reg += dynamicModel->computeTensorContux(nextVx);
+                Quu_reg += dynamicModel->computeTensorContuu(nextVx);
             }
 
-            QuuInv = Quu.inverse();
+            QuuInv = Quu_reg.inverse();
 
-            if(!isQuudefinitePositive(Quu))
+            if(!isQuudefinitePositive(Quu_reg))
             {
                 /*
                   To be Implemented : Regularization (is Quu definite positive ?)
@@ -158,7 +162,7 @@ void ILQRSolver::backwardLoop()
             if(enableQPBox)
             {
                 nWSR = 10;
-                H = Quu;
+                H = Quu_reg;
                 g = Qu;
                 lb = lowerCommandBounds - u;
                 ub = upperCommandBounds - u;

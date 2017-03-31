@@ -63,9 +63,9 @@ private:
     stateVec_t Qx;
     stateMat_t Qxx;
     commandVec_t Qu;
-    commandMat_t Quu;
+    commandMat_t Quu,Quu_reg;
     commandMat_t QuuInv;
-    commandR_stateC_t Qux;
+    commandR_stateC_t Qux,Qux_reg;
     commandVec_t k;
     commandR_stateC_t K;
     commandVecTab_t kList;
